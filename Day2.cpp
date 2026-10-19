@@ -14,13 +14,7 @@ array<array<array<ll,2>,2>,20> lengthFactors;
 
 ll getSmallestIncrement(int length, int offset)
 {
-    // length = 15, offset 5
-    // 00001 00001 00001 smallest increment 4,9,14
-    // length 12, offset 3
-    // 001 001 001 001 2,5,8,11
-    // length 3, offset 1 - 0,1,2
-    // length 8, offset 4
-    // 0001 0001
+   
     int i = offset-1;
     ll total =0;
     while(i < length)
@@ -158,25 +152,6 @@ int main(){
             bool firstFound = false;
             ll factorOffset = factors[k][1];
 
-            // t4 = high_resolution_clock::now();
-            // //spliting finding out for profiling
-            // while(! && j <= endRange)
-            // {
-            //     string numString =to_string(j);
-            //     if(hasRepeatedNum(numString,factor))
-            //     {
-            //         ids.insert(j);
-            //         firstFound = true;
-            //         j += factorOffset;
-            //         continue;
-            //     }
-            //     j++;
-            // }
-            // t3 = high_resolution_clock::now();
-
-            // ms_double += t3 - t4;
-
-            
             while(j <= endRange)
             {
                 if(j >= startRange)
