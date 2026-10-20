@@ -1,5 +1,5 @@
 #include <string>
-#include "Helpful_Commands.cpp"
+#include "../Helpful_Commands.cpp"
 #include <iostream>
 #include <fstream>
 #include <cmath>

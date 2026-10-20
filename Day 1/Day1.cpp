@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "Helpful_Commands.cpp"
+#include "../Helpful_Commands.cpp"
 
 int passedZeros = 0;
 int prevNum = 50;
@@ -9,7 +9,7 @@ bool prevZero = false;
 int decodeLine(string line)
 {
     char direction = line[0];
-    int num = stripNums(line)[0];
+    int num = stripNumsInt(line)[0];
 
     if(direction == 'R')
     {

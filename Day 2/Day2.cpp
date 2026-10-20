@@ -5,7 +5,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
-#include "Helpful_Commands.cpp"
+#include "../Helpful_Commands.cpp"
 using namespace std;
 
 typedef long long ll;
