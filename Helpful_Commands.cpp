@@ -88,6 +88,20 @@ vector<long long> stripNumsLong(string inputString)
     return strippedNums;
 }
 
+vector<char> stripChars(string inputString)
+{
+    vector<char> strippedChars;
+    for(int i = 0; i < inputString.size();i++)
+    {
+        char currentChar = inputString[i];
+        if(!isspace(currentChar))
+        {
+            strippedChars.push_back(currentChar);
+        }
+    }
+    return strippedChars;
+}
+
 // int main(){
 //     string stringWithNums;
 //     getline(cin,stringWithNums);
