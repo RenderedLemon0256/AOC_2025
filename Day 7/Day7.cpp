@@ -50,6 +50,7 @@ int part1() {
         }
     }
     cout << total;
+    return 0;
 }
 int part2(){
     vector<vector<array<ll,2>>> graph;
