@@ -102,6 +102,35 @@ vector<char> stripChars(string inputString)
     return strippedChars;
 }
 
+vector<string> stripWords(string inputString)
+{
+    vector<string> strippedWords;
+    string nextWordString;
+    bool onWord = false;
+
+    for(int i = 0; i < inputString.size();i++)
+    {
+        char currentChar = inputString[i];
+        if(!isspace(currentChar))
+        {
+            nextWordString +=currentChar;
+            onWord = true;
+            if(i < inputString.size() - 1)
+            {
+                continue;
+            }
+        }
+        if(onWord) //end of number
+        {
+            strippedWords.push_back(nextWordString);
+            nextWordString = "";
+            onWord = false;
+        }
+    }
+    return strippedWords;
+}
+
+
 // int main(){
 //     string stringWithNums;
 //     getline(cin,stringWithNums);
