@@ -106,8 +106,25 @@ void readInput()
     }
     decodeLines(lines);
 }
+bool isRegionFit(region currRegion)
+{
+    //going to do dfs on shape positions
+    return false;
+}
+int getNumFitRegions()
+{
+    int total = 0;
+    for(int i = 0; i < regions.size();i++)
+    {
+        region currRegion = regions[i];
+        bool fitRegion = isRegionFit(currRegion);
+        if(fitRegion) {total++;}
+    }
+    return total;
+}
 int main() {
     readInput();
-    cout << shapes[0].shape[0][0];
+    int numRegions = getNumFitRegions();
+    cout << numRegions;
     return 0;
 }
