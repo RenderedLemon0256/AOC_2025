@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 #include "../Helpful_Commands.cpp"
+#include <unordered_map>
 #include <queue>
-#include <array>
 #include <algorithm>
 using namespace std;
 //need to go down tree using bfs
@@ -167,6 +167,21 @@ enum searchResult
     SUCCESS,
     FAILURE
 };
+class joltStateHasher {
+public:
+  std::size_t operator()(joltState const& vec) const {
+    std::size_t seed = vec.currentState.size();
+    for(auto x : vec.currentState) {
+
+        x = ((x >> 16) ^ x) * 0x45d9f3b;
+        x = ((x >> 16) ^ x) * 0x45d9f3b;
+        x = (x >> 16) ^ x;
+        seed ^= x + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+}
+};
+
 //bfs
 //process each node and push it's neighbours to the queue
 //use hashmap to store whether state has been seen before
@@ -235,8 +250,66 @@ int part1()
     return 0;
 }
 queue<joltNode> jSearchQueue;
-vector<joltState> visitedJolts;
-vector<array<joltState,2>> previousStates;
+unordered_map<joltState,bool,joltStateHasher> visitedJolts;
+unordered_map<joltState,joltState,joltStateHasher> predecesorMap;
+
+bool buttonHasIndex(button but, int index)
+{
+    for(int i=0;i < but.buttonIndexes.size();i++)
+    {
+        if(but.buttonIndexes[i] == index) {return true;}
+    }
+    return false;
+}
+
+bool comp(button a, button b)
+{
+    return a.buttonIndexes.size() > b.buttonIndexes.size();
+}
+
+bool joltCantEqual(joltState currentJolt, machine mach)
+{
+    //checking that no joltage is impossible to increase to its target without going above other jolts
+    vector<button> buttons = mach.buttons;
+    sort(buttons.begin(),buttons.end(),comp);
+    joltState targetJolt = mach.targetJolt;
+    vector<int> targets = vector<int>(targetJolt.currentState.size());
+
+    for(int i = 0; i < targetJolt.currentState.size();i++)
+    {
+        targets[i] = targetJolt.currentState[i] - currentJolt.currentState[i];
+    }
+
+    for(int i = 0; i < targetJolt.currentState.size();i++)
+    {
+        //how many buttons we would need to press
+        int targetDiff = targets[i]; 
+        if(targetDiff == 0) {continue;} //already at target
+        vector<int> targetCopy = vector<int>(targets.size());
+        for(int j =0; j < targets.size();j++) {targetCopy[j] = targets[j];}
+        for(int j = 0; j < buttons.size();j++) //going through the buttons to see which ones we can press
+        {
+            button but = buttons[j];
+            if(!buttonHasIndex(but,i)) {continue;}
+
+            int minTarget = 10000; //we need minimum max buttons we can press
+            for( int k = 0; k < but.buttonIndexes.size();k++) //finding the max number of times we can press this button
+            {
+                int target = targetCopy[but.buttonIndexes[k]];
+                if(target < minTarget) {minTarget = target;}
+            }
+            targetDiff -= minTarget;
+            if(targetDiff <=0) {break;}
+            for(int k = 0;k < but.buttonIndexes.size();k++)
+            {
+                targetCopy[but.buttonIndexes[k]] -= minTarget;
+            }
+        }
+        if(targetDiff > 0) { 
+            return true;}
+    }
+    return false;
+}
 
 bool joltStateOverTarget(joltState currentJolt, joltState targetJolt)
 {
@@ -246,18 +319,15 @@ bool joltStateOverTarget(joltState currentJolt, joltState targetJolt)
     }
     return false;
 }
+int node = 1000;
 
 joltState getPrevJoltState(joltState currentState)
 {
-    for(int i = 0 ; i< previousStates.size();i++)
-    {
-        if(previousStates[i][1] == currentState)
-        {
-            return previousStates[i][0];
-        }
+    if(predecesorMap.find(currentState) == predecesorMap.end()) { //can't backtrack
+        cout << "BackTrack Error";
+        return currentState;
     }
-    cout <<"backtrack error" << '\n';
-    return currentState;
+    return predecesorMap[currentState];
 }
 
 searchResult searchJNode(joltNode currentNode,machine mach)
@@ -273,10 +343,12 @@ searchResult searchJNode(joltNode currentNode,machine mach)
         {
             joltNode newNode;
             joltState nodeState = but.pressButton(currentNode.currentJolt);
-            bool visitedJolt = find(visitedJolts.begin(),visitedJolts.end(),nodeState) != visitedJolts.end();
+            bool visitedJolt = visitedJolts.count(nodeState);
 
-            if(visitedJolt) {continue;} //have visited already so we just skip
+            if(visitedJolt) {
+                continue;} //have visited already so we just skip
             if(joltStateOverTarget(nodeState,mach.targetJolt)) {continue;}
+            if(joltCantEqual(nodeState,mach)) {continue;}
 
             newNode.currentJolt = nodeState;
             newNode.nodeDepth = currentNode.nodeDepth + 1;
@@ -291,16 +363,25 @@ searchResult searchJNode(joltNode currentNode,machine mach)
         prevNode.currentJolt = prevState;
         prevNode.nodeDepth = currentNode.nodeDepth -1;
         nextNode = prevNode;
-        cout <<"b";
-
+        node--;
+        //  if(node < 0){
+        //     node =1000;
+        //     for(int i = 0; i < prevNode.currentJolt.currentState.sizes();i++) {cout << prevNode.currentJolt.currentState[i] << " ";}
+        //     cout <<'\n';
+        // }
     }
     else //not backtracking so we need to add the backtrack
     {
-        array<joltState,2> backtrack = {currentNode.currentJolt, nextNode.currentJolt};
-        previousStates.push_back(backtrack);
-        visitedJolts.push_back(nextNode.currentJolt);
+        predecesorMap[nextNode.currentJolt] = currentNode.currentJolt;
+        visitedJolts[nextNode.currentJolt] = true;
+        //  if(node < 0){
+        //     node =1000;
+        //     for(int i = 0; i < nextNode.currentJolt.currentState.size();i++) {cout << nextNode.currentJolt.currentState[i] << " ";}
+        //     cout <<'\n';
+        // }
     }
-
+    // for(int i = 0; i < nextNode.currentJolt.currentState.size();i++) {cout << nextNode.currentJolt.currentState[i] << " ";}
+    // cout << endl;
     jSearchQueue.push(nextNode);
     return FAILURE;
 }
@@ -310,7 +391,7 @@ int calculateMinJoltMoves(machine mach)
     {
         jSearchQueue.pop();
     }
-    previousStates.clear();
+    predecesorMap.clear();
     visitedJolts.clear();
     joltNode startingNode;
     joltState startState;
@@ -341,7 +422,7 @@ int part2()
     for(machine mach : machines)
     {
         int minMoves = calculateMinJoltMoves(mach);
-        cout << minMoves << '\n';
+        cout << minMoves << '\n' << '\n';
         total+=minMoves;
     }
     cout << "Total:" << total << '\n';
